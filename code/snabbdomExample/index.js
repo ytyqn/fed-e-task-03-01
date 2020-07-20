@@ -5,7 +5,7 @@ import { styleModule } from 'snabbdom/build/package/modules/style.js'
 import { eventListenersModule } from 'snabbdom/build/package/modules/eventlisteners.js'
 import { h } from 'snabbdom/build/package/h.js' 
 
-const testData =[
+let testData =[
     { rank: 1, title: 'The Shawshank Redemption'},
     { rank: 2, title: 'The Godfather' },
     { rank: 3, title: 'The Godfather: Part II' },
@@ -26,10 +26,35 @@ let patch = init([
 ])
 
 let vnode
+let sortBy = 'rank'
+let totalHeight = 0
 
 window.addEventListener('DOMContentLoaded',()=>{
+    console.log('aaaa')
     let container = document.getElementById('container')
-    vnode = patch(container, h('div',[
+    vnode = patch(container, viewList())
+    changeSort()
+})
+
+function viewList(){
+    const temp = testData.map(node=>{
+        return h('div.row',{
+            key: node.rank,
+            style: {
+                // opacity: '0',
+                // transform: 'translate(-200px)',
+                delayed: { transform: `translateY(${node.offset}px)`, opacity: '1' },
+                remove: { opacity: '0', transform: `translateY(${node.offset}px) translateX(200px)` }
+              },
+        },[
+            h('div', { style: { fontWeight: 'bold' } }, node.rank),
+            h('div', node.title),
+            h('div.btn.rm-btn', { on: { click: [removeNode, node] } }, 'x'),
+          ])
+    })
+     
+
+      return h('div',[
         h('h1', 'Top 10 movies'),
         h('div', [
             h('a.btn.add', { on: { click: addNode } }, 'Add'),
@@ -44,32 +69,8 @@ window.addEventListener('DOMContentLoaded',()=>{
                     on: { click: [changeSort, 'title'] } 
                 }, 'Title')
             ]),
-        ]),
-        viewList()
+        ]),h('div.list',{ style: { height: totalHeight + 'px' } },temp)
     ])
-    )
-
-})
-
-function viewList(){
-    const temp = testData.map(node=>{
-        h('div.row',{
-            key: node.rank,
-            style: {
-                opacity: '0',
-                transform: 'translate(-200px)',
-                delayed: { transform: `translateY(${movie.offset}px)`, opacity: '1' },
-                remove: { opacity: '0', transform: `translateY(${movie.offset}px) translateX(200px)` }
-              },
-        },[
-            h('div', { style: { fontWeight: 'bold' } }, node.rank),
-            h('div', node.title),
-            h('div.btn.rm-btn', { on: { click: [removeNode, node] } }, 'x'),
-          ])
-    })
-     
-
-      return h('div.list', { style: { height: totalHeight + 'px' } },temp)
 }
 
 function removeNode(node){
@@ -85,7 +86,7 @@ function addNode(){
     update()
 }
 
-function changeSort (prop) {
+function changeSort (prop = 'rank') {
     sortBy = prop
     testData.sort((a, b) => {
       if (a[prop] > b[prop]) {
@@ -98,8 +99,14 @@ function changeSort (prop) {
     })
     update()
   }
-
-function update(oldNode, newNode){
+  let margin = 8
+function update(){
+    testData = testData.reduce((acc, m) => {
+        var last = acc[acc.length - 1]
+        m.offset = last ? last.offset + last.elmHeight + margin : margin
+        return acc.concat(m)
+      }, [])
+      totalHeight = testData[testData.length - 1].offset + testData[testData.length - 1].elmHeight
     vnode = patch(vnode, viewList())
 }
 
