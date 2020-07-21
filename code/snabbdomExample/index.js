@@ -38,14 +38,10 @@ window.addEventListener('DOMContentLoaded',()=>{
 
 function viewList(){
     const temp = testData.map(node=>{
+        totalHeight += 56
+        console.log(totalHeight)
         return h('div.row',{
-            key: node.rank,
-            style: {
-                // opacity: '0',
-                // transform: 'translate(-200px)',
-                delayed: { transform: `translateY(${node.offset}px)`, opacity: '1' },
-                remove: { opacity: '0', transform: `translateY(${node.offset}px) translateX(200px)` }
-              },
+            key: node.rank
         },[
             h('div', { style: { fontWeight: 'bold' } }, node.rank),
             h('div', node.title),
@@ -79,8 +75,8 @@ function removeNode(node){
 }
 
 function addNode(){
-    testData.push({
-        rank: testData.length,
+    testData.unshift({
+        rank: testData.length+1,
         title: 'Fight Club'
     })
     update()
@@ -99,14 +95,7 @@ function changeSort (prop = 'rank') {
     })
     update()
   }
-  let margin = 8
 function update(){
-    testData = testData.reduce((acc, m) => {
-        var last = acc[acc.length - 1]
-        m.offset = last ? last.offset + last.elmHeight + margin : margin
-        return acc.concat(m)
-      }, [])
-      totalHeight = testData[testData.length - 1].offset + testData[testData.length - 1].elmHeight
     vnode = patch(vnode, viewList())
 }
 
